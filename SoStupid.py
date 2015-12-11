@@ -167,9 +167,8 @@ class ReflexCaptureAgent(CaptureAgent):
     A = self.getTeam(gameState)
     self.team[A[0]] = 1
     self.team[A[1]] = 2
-    self.target = {}
     print "initialize"
-    self.target[self.index] = (-1,-1)
+    self.target = (-1,-1)
     self.is_prepared = False
     ## each pacman agent has its own food target during attack, if food collision, they need to
     ##communicate and switch targets
@@ -263,6 +262,7 @@ class ReflexCaptureAgent(CaptureAgent):
     """
     Returns a counter of features for the state
     """
+    ##successor = self.getSuccessor(gameState, action)
     L = gameState.getAgentState(self.index)
     enemyPos = []
     for enemyI in self.getOpponents(gameState):
@@ -292,6 +292,7 @@ class ReflexCaptureAgent(CaptureAgent):
         return self.getOffensiveFeatures(gameState,action)
 
   def getWeights(self, gameState, action):
+
     L = gameState.getAgentState(self.index)
     enemyPos = []
     for enemyI in self.getOpponents(gameState):
@@ -302,7 +303,7 @@ class ReflexCaptureAgent(CaptureAgent):
 
     if len(enemyPos) > 0:
       for enemyI, pos in enemyPos:
-        if self.getMazeDistance(L.getPosition(), pos) <= 5 and L.isPacman==False and gameState.getAgentState(self.index).scaredTimer<=0:
+        if self.getMazeDistance(L.getPosition(), pos) <= 6 and L.isPacman==False and gameState.getAgentState(self.index).scaredTimer<=0:
             return self.getDefenseWeights(gameState,action)
 
     if self.is_prepared == False:
@@ -400,7 +401,7 @@ class ReflexCaptureAgent(CaptureAgent):
       dis_dict = {}
       peer_dis = {}
       for food in foodList:
-          dis_dict[food] = self.getMaze4Distance(myPos, food)
+          dis_dict[food] = self.getMazeDistance(myPos, food)
           peer_dis[food] = self.getMazeDistance(peerPos,food)
       minDistance = min(dis_dict.values())
       PminDistance = min(peer_dis.values())
@@ -425,7 +426,7 @@ class ReflexCaptureAgent(CaptureAgent):
           pminDistance = 0
           foodList.remove(self.target)
           ##remove all the adjacent point of this target
-
+          """
           for i in range(1,4):
             if (temp[0],temp[1]+i) in foodList:
               foodList.remove((temp[0],temp[1]+i))
@@ -443,6 +444,12 @@ class ReflexCaptureAgent(CaptureAgent):
               foodList.remove((temp[0]-i,temp[1]-i))
             if (temp[0]-i,temp[1]+i) in foodList:
               foodList.remove((temp[0]-i,temp[1]+i))
+          """
+          for i in range(-2,3):
+              for j in range(-2,3):
+                  if temp[0]+i >= 0 and temp[0] + i <= gameState.getWalls().width and temp[1]+j >=0 and temp[1]+j <= gameState.getWalls().height:
+                      if (temp[0]+i,temp[1]+j) in foodList:
+                          foodList.remove((temp[0]+i,temp[1]+j))
           if len(foodList) == 0:
               break
           if len(foodList) > 0:
@@ -538,8 +545,8 @@ class ReflexCaptureAgent(CaptureAgent):
     weights['capsure_num'] = -200
     weights['cap_distance'] = 10
     weights['enemy_dis'] = -1000
-    weights['place_score'] = 1
-    weights['stop'] = -1000
+    weights['place_score'] = 0
+    weights['stop'] = -500
     weights['reverse'] = -1
     weights['run_in_right_way'] = 1
     return weights
@@ -575,5 +582,5 @@ class ReflexCaptureAgent(CaptureAgent):
 
 
   def getDefenseWeights(self, gameState, action):
-    return {'numInvaders': -1000, 'onDefense': 100, 'invaderDistance': -10,'bonus':100, 'stop': -10, 'reverse': 0}
+    return {'numInvaders': -1000, 'onDefense': 100, 'invaderDistance': -10,'bonus':100, 'stop': -1, 'reverse': 0}
 
